@@ -5,6 +5,8 @@ from dataclasses import dataclass
 
 @dataclass
 class Question:
+# Immutable-ish container for a single question entry from questions.json
+# Paths are resolved to local filesystem locations under images_root.
     set_name: str
     level: str
     bonus: bool
@@ -20,6 +22,7 @@ class Question:
 
 class QuestionRepository:
     def __init__(self, json_filename: str = "questions.json", images_folder: str = "images"):
+        # Resolve paths relative to this module file (not current working directory).
         base_dir = Path(__file__).resolve().parent
 
         self.json_path = base_dir / json_filename
@@ -31,6 +34,7 @@ class QuestionRepository:
         self._questions = self._load_and_compile()
 
     def _load_and_compile(self) -> list[Question]:
+        # Read and and parse the JSON metadata file. I want to kill myself.
         with self.json_path.open("r", encoding="utf-8") as f:
             data = json.load(f)
 
@@ -63,4 +67,5 @@ class QuestionRepository:
         return compiled
 
     def get_all_questions(self) -> list[Question]:
+        # Accessor for the preloaded question list
         return self._questions
