@@ -1,6 +1,5 @@
 from __future__ import annotations
-from typing import Iterable, Optional, Set, List
-from question_base.questions_repo import Question
+from questions_repo import Question
 import random
 
 class NoQuestionsMatchError(ValueError):
