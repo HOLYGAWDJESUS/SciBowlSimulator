@@ -1,5 +1,5 @@
-from questions_repo import QuestionRepository
-from questions_generator import QuestionPicker
+from bot.question_base.questions_repo import QuestionRepository
+from bot.services.questions_generator import QuestionPicker
 
 repo = QuestionRepository()
 picker = QuestionPicker(repo.get_all_questions())

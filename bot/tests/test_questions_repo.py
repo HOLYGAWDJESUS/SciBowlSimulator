@@ -1,4 +1,4 @@
-from questions_repo import QuestionRepository
+from bot.question_base.questions_repo import QuestionRepository
 
 repo = QuestionRepository()
 

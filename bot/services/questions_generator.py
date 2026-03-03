@@ -1,4 +1,4 @@
-from questions_repo import Question
+from bot.question_base.questions_repo import Question
 from typing import Optional, Iterable
 import random
 

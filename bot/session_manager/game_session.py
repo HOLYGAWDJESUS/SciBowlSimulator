@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import Optional, Iterable
 
 from bot.question_base.questions_repo import Question
-from bot.question_base.questions_generator import QuestionPicker, NoQuestionsMatchError
+from bot.services.questions_generator import QuestionPicker, NoQuestionsMatchError
 
 # Add server manager ability to disable usage of bot in certain channels e.g. #general
 class ChannelDisabledError(Exception):
