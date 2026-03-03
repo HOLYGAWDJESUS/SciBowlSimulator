@@ -1,5 +1,5 @@
 from bot.question_base.questions_repo import Question
-from typing import Optional, Iterable
+from typing import Optional, Iterable, List
 import random
 
 class NoQuestionsMatchError(ValueError):

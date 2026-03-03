@@ -2,7 +2,7 @@ from bot.question_base.questions_repo import QuestionRepository
 
 repo = QuestionRepository()
 
-list: questions
+questions: list
 
 questions = repo.get_all_questions()
 
