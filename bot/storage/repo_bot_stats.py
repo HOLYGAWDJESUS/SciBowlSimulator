@@ -7,6 +7,7 @@ from typing import Dict
 import aiosqlite
 
 
+# Common keys (add more as needed)
 TOTAL_QUESTIONS_GENERATED = "total_questions_generated"
 
 
@@ -16,20 +17,20 @@ def _utc_now_iso() -> str:
 
 async def ensure_schema(conn: aiosqlite.Connection) -> None:
     await conn.execute(
-        '''
+        """
         CREATE TABLE IF NOT EXISTS bot_stats (
-            key: TEXT PRIMARY KEY,
-            value: INTEGER NOT NULL,
-            updated_at: TEXT NOT NULL
+            key        TEXT PRIMARY KEY,
+            value      INTEGER NOT NULL,
+            updated_at TEXT NOT NULL
         );
-        '''
+        """
     )
     await conn.commit()
 
 
 @dataclass(slots=True)
 class BotStatsRepo:
-    '''Key-value integer stats for the bot (global counters).'''
+    """Key-value integer stats for the bot (global counters)."""
     conn: aiosqlite.Connection
 
     async def get_int(self, key: str, default: int = 0) -> int:
@@ -41,30 +42,30 @@ class BotStatsRepo:
     async def set_int(self, key: str, value: int) -> None:
         now = _utc_now_iso()
         await self.conn.execute(
-            '''
+            """
             INSERT INTO bot_stats (key, value, updated_at)
-            VALUE
+            VALUES (?, ?, ?)
             ON CONFLICT(key) DO UPDATE SET
-            value = excluded.value,
-            updated_at = excluded.updated_at;
-            ''',
+                value = excluded.value,
+                updated_at = excluded.updated_at;
+            """,
             (key, int(value), now),
         )
         await self.conn.commit()
 
     async def increment_int(self, key: str, delta: int = 1) -> int:
-        '''
-        increment a counter and return the new value.
-        '''
+        """
+        Atomically increment a counter and return the new value.
+        """
         now = _utc_now_iso()
         await self.conn.execute(
-            '''
+            """
             INSERT INTO bot_stats (key, value, updated_at)
             VALUES (?, ?, ?)
             ON CONFLICT(key) DO UPDATE SET
-            value = bot_stats.value + excluded.value,
-            updated_at = excluded.updated_at;
-            ''',
+                value = bot_stats.value + excluded.value,
+                updated_at = excluded.updated_at;
+            """,
             (key, int(delta), now),
         )
         await self.conn.commit()

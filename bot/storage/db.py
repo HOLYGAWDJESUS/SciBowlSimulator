@@ -9,24 +9,23 @@ import aiosqlite
 
 @dataclass(slots=True)
 class DatabaseConfig:
-    '''
-    Config for the SQLite database connection
-    '''
+    """Config for the SQLite database connection."""
     db_path: Path
     pragmas_wal: bool = True
-    busy_timeout_ms: int = 5000  # avoid database is locked spike
+    busy_timeout_ms: int = 5000  # avooid spikes
 
 
 class Database:
-    '''
-    a single shared aiosqlite connection.
-    usage:
-    db = Database(DatabaseConfig(Path("bot/storage/data.sqlite")))
-    await db.connect()
-    await db.init_schema()
-    pass db.conn into repos
-    await db.close()
-    '''
+    """
+    Owns a single shared aiosqlite.Connection.
+
+    Typical usage:
+        db = Database(DatabaseConfig(Path("bot/storage/data.sqlite")))
+        await db.connect()
+        await db.init_schema()
+        ... pass db.conn into repos ...
+        await db.close()
+    """
 
     def __init__(self, config: DatabaseConfig):
         self.config = config
@@ -35,16 +34,16 @@ class Database:
     @property
     def conn(self) -> aiosqlite.Connection:
         if self._conn is None:
-            raise RuntimeError("Database not connected; Try call all await db.connect() first.")
+            raise RuntimeError("Database not connected. Call await db.connect() first.")
         return self._conn
 
     async def connect(self) -> aiosqlite.Connection:
-        '''Open the SQLite connection and apply recommended pragmas.'''
+        """Open the SQLite connection and apply recommended pragmas."""
         # Ensure folder exists
         self.config.db_path.parent.mkdir(parents=True, exist_ok=True)
 
         conn = await aiosqlite.connect(self.config.db_path.as_posix())
-        # Fetch rows like dict-ish access by column name
+        # Fetch rows like dict access by column name
         conn.row_factory = aiosqlite.Row
 
         # PRAGMAs
@@ -52,7 +51,6 @@ class Database:
         await conn.execute(f"PRAGMA busy_timeout = {int(self.config.busy_timeout_ms)};")
 
         if self.config.pragmas_wal:
-            # WAL is better for concurrent reads/writes typical of bots
             await conn.execute("PRAGMA journal_mode = WAL;")
             await conn.execute("PRAGMA synchronous = NORMAL;")
 
@@ -61,10 +59,10 @@ class Database:
         return conn
 
     async def init_schema(self) -> None:
-        '''
-        Create tables if don't exist.
+        """
+        Create tables if they don't exist.
         Each repo owns its own ensure_schema() so schema stays near code.
-        '''
+        """
         from .repo_player_points import ensure_schema as ensure_points
         from .repo_disabled_channels import ensure_schema as ensure_channels
         from .repo_bot_stats import ensure_schema as ensure_stats
@@ -76,7 +74,7 @@ class Database:
         await ensure_qstats(self.conn)
 
     async def close(self) -> None:
-        '''Close the connection.'''
+        """Close the connection."""
         if self._conn is not None:
             await self._conn.close()
             self._conn = None

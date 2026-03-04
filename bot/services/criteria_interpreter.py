@@ -74,6 +74,7 @@ _SUBJECT_SYNONYMS: Dict[str, str] = {
     # Earth & Space variants
     "earth": "EARTH AND SPACE",
     "es": "EARTH AND SPACE",
+    "ess": "EARTH AND SPACE",
     "earthspace": "EARTH AND SPACE",
     "earthandspace": "EARTH AND SPACE",
     "earthnspace": "EARTH AND SPACE",
