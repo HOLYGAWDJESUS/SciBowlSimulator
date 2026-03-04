@@ -24,13 +24,13 @@ class GradeResult:
 _WORD_CHARS_RE = re.compile(r"[A-Z0-9]+")  # after uppercasing
 
 def normalize_answer(text: str) -> str:
-    """
+    '''
     Deterministic normalization:
     - Unicode NFKD (reduces fancy characters)
     - Uppercase
     - Keep only A-Z and 0-9 tokens; punctuation becomes separators
     - Collapse to single-space tokens
-    """
+    '''
     if text is None:
         return ""
 
@@ -64,12 +64,12 @@ class ParsedAnswerKey:
 _MC_KEY_RE = re.compile(r"^\s*([A-Za-z])\s*[\)\.\:\-]?\s*(.*)\s*$")
 
 def parse_mc_key(parsed_answer: str) -> ParsedAnswerKey:
-    """
+    '''
     Expected format examples:
       "X)  POSITIVE, NEGATIVE"
       "W. SOMETHING"
       "Y: ANSWER"
-    """
+    '''
     raw = (parsed_answer or "").strip()
     if not raw:
         return ParsedAnswerKey(qtype="MC", accepted_normalized=set(), mc_letter=None, mc_text_normalized=None)
@@ -106,12 +106,12 @@ _ACCEPT_RE = re.compile(r"ACCEPT\s*:\s*([^\)]*)", re.IGNORECASE)
 _DONOT_RE = re.compile(r"DO\s*NOT\s*ACCEPT\s*:\s*([^\)]*)", re.IGNORECASE)
 
 def _split_alternatives(raw: str) -> List[str]:
-    """
+    '''
     Conservative split for ACCEPT lists.
     - Prefer ';'
     - Then ' OR ' (case-insensitive)
     - Do NOT split on commas by default (commas are often part of one phrase)
-    """
+    '''
     s = (raw or "").strip()
     if not s:
         return []
@@ -127,7 +127,7 @@ def _split_alternatives(raw: str) -> List[str]:
 
 
 def parse_sa_key(parsed_answer: str) -> ParsedAnswerKey:
-    """
+    '''
     Expected SA format examples:
     "T AND B  (ACCEPT:  B AND T CELLS)"
     "SOME ANSWER"
@@ -135,7 +135,7 @@ def parse_sa_key(parsed_answer: str) -> ParsedAnswerKey:
     main answer (before first '(') is accepted
     any explicit ACCEPT: alternatives are accepted (still exact after normalization)
     any explicit DO NOT ACCEPT: alternatives are excluded if they collide
-    """
+    '''
     raw = (parsed_answer or "").strip()
     if not raw:
         return ParsedAnswerKey(qtype="SA", accepted_normalized=set())
@@ -178,7 +178,7 @@ def parse_answer_key(qtype: str, parsed_answer: str) -> ParsedAnswerKey:
     if qt == "SA":
         return parse_sa_key(parsed_answer)
 
-    # Fallback: strict normalized equality against the whole parsed_answer
+    # Grade Fallback for unknown problem types: strict normalized equality against the whole parsed_answer
     key_norm = normalize_answer(parsed_answer or "")
     accepted = {key_norm} if key_norm else set()
     return ParsedAnswerKey(qtype=qt or "UNKNOWN", accepted_normalized=accepted)
@@ -189,9 +189,9 @@ def parse_answer_key(qtype: str, parsed_answer: str) -> ParsedAnswerKey:
 ########################
 
 def grade_answer(qtype: str, parsed_answer: str, user_answer: str) -> GradeResult:
-    """
+    '''
     Core entrypoint for Discord layer (Option B).
-    """
+    '''
     key = parse_answer_key(qtype, parsed_answer)
     user_norm = normalize_answer(user_answer or "")
 
@@ -206,9 +206,9 @@ def grade_answer(qtype: str, parsed_answer: str, user_answer: str) -> GradeResul
 
     # MC grading rules
     if key.qtype == "MC":
-        # If we successfully parsed the correct letter, allow:
-        # - first token == correct letter (and anything after)  [your "W and then whatever"]
-        # - exact matches against accepted set (letter alone, text alone, letter+text)
+        # If successfully parsed the correct letter, allow:
+        # first token equals correct letter (and anything after)  [your "W and then whatever" is accepted]
+        # exact matches against accepted set (letter alone, text alone, letter and text)
         if key.mc_letter:
             if first_token(user_norm) == key.mc_letter:
                 return GradeResult(
@@ -255,7 +255,7 @@ def grade_answer(qtype: str, parsed_answer: str, user_answer: str) -> GradeResul
             expected_choice=None,
         )
 
-    # Fallback grading (strict normalized equality vs accepted set)
+    # Fallback
     if user_norm and user_norm in key.accepted_normalized:
         return GradeResult(
             is_correct=True,
