@@ -1,14 +1,9 @@
 import unittest
 from dataclasses import dataclass
 from typing import Any, Dict, Optional
-
-# ✅ Your real import path
 from bot.session_manager.game_session import SessionManager
 from bot.session_manager.game_session import ChannelDisabledError, NoActiveQuestionError
 
-
-# Minimal dummy Question object for tests.
-# Your SessionManager should only store/return it; it shouldn't require real dataset fields.
 @dataclass(frozen=True)
 class DummyQuestion:
     tag: str
@@ -16,7 +11,7 @@ class DummyQuestion:
 
 class FakePicker:
     """
-    Deterministic picker that returns questions in a preset order and records calls.
+    picker that returns questions in a preset order and records calls.
     """
     def __init__(self, questions):
         self._questions = list(questions)
