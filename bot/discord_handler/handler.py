@@ -91,5 +91,5 @@ def build_bot() -> SciBowlBot:
         command_prefix="-",
         intents=intents,
         allowed_mentions=discord.AllowedMentions(users=True, roles=False, everyone=False),
-        help_command=None,  # we implement -help ourselves
+        help_command=None,  # I implement -help myself
     )

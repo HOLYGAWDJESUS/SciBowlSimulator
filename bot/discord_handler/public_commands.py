@@ -49,7 +49,14 @@ class PublicCommands(commands.Cog):
 
     @commands.command(name="help")
     async def help_cmd(self, ctx: commands.Context) -> None:
-        out = self.s.embed_factory.help_embed()
+
+        generated_count = None
+        try:
+            generated_count = await self.s.bot_stats_repo.get_int(self.s.total_questions_key, 0)
+        except Exception:
+            pass
+
+        out = self.s.embed_factory.help_embed(generated_count)
         await ctx.send(embed=out.embed, files=out.files)
 
     @commands.command(name="balance")
@@ -59,9 +66,21 @@ class PublicCommands(commands.Cog):
             out = self.s.embed_factory.error_embed("Could not resolve that user. Use a mention or a numeric ID. \n For example: -balance @user")
             await ctx.send(embed=out.embed)
             return
+        
+        generated_count = None
+        try:
+            generated_count = await self.s.bot_stats_repo.get_int(self.s.total_questions_key, 0)
+        except Exception:
+            pass
 
         points = await self.s.player_points_repo.get_points(user.id)
-        out = self.s.embed_factory.balance_embed(user_display=str(user), user_id=user.id, points=points)
+        out = self.s.embed_factory.balance_embed(
+            user_display=str(user),
+            user_id=user.id,
+            points=points,
+            avatar_url=str(user.display_avatar.url),
+            generated_count=generated_count
+        )
         await ctx.send(embed=out.embed)
 
     @commands.command(name="c")
@@ -74,9 +93,19 @@ class PublicCommands(commands.Cog):
             out = self.s.embed_factory.error_embed("No active question in this channel. Use `-q` to start a new one.")
             await ctx.send(embed=out.embed)
             return
+        generated_count = None
+        try:
+            generated_count = await self.s.bot_stats_repo.get_int(self.s.total_questions_key, 0)
+        except Exception:
+            pass
 
         qid = self.s.make_question_id(q)
-        out = self.s.embed_factory.question_embed(q, is_repost=True, question_id=qid)
+        out = self.s.embed_factory.question_embed(
+            q,
+            is_repost=True,
+            question_id=qid,
+            generated_count=generated_count,
+        )
         await ctx.send(embed=out.embed, files=out.files)
 
     @commands.command(name="q")
@@ -137,8 +166,21 @@ class PublicCommands(commands.Cog):
         except Exception:
             pass
 
+        generated_count = None
+        try:
+            generated_count = await self.s.bot_stats_repo.get_int(self.s.total_questions_key, 0)
+        except Exception:
+            pass
+        
+
         qid = self.s.make_question_id(q)
-        out_q = self.s.embed_factory.question_embed(q, is_repost=False, criteria_text=criteria_text or None, question_id=qid)
+        out_q = self.s.embed_factory.question_embed(
+            q,
+            is_repost=False,
+            criteria_text=criteria_text or None,
+            question_id=qid,
+            generated_count=generated_count,
+        )
         msg = await ctx.send(embed=out_q.embed, files=out_q.files)
 
         # Store message id in the session manager
@@ -200,8 +242,15 @@ class PublicCommands(commands.Cog):
                 except Exception:
                     new_total = None
 
+            generated_count = None
+            try:
+                generated_count = await self.s.bot_stats_repo.get_int(self.s.total_questions_key, 0)
+            except Exception:
+                pass
+
             out = self.s.embed_factory.answer_result_embed(
                 q,
+                generated_count=generated_count,
                 answerer_display=str(ctx.author),
                 is_correct=is_correct,
                 user_answer=ans,
